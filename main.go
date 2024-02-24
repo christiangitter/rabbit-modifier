@@ -1,8 +1,8 @@
 package main
 
 import (
+	"encoding/json"
 	"log"
-	"strings"
 
 	"github.com/streadway/amqp"
 )
@@ -57,10 +57,26 @@ func main() {
 		// Convert message body to string for processing
 		originalMessage := string(msg.Body)
 
-		// Search for a string and replace it
-		searchString := "World"
-		replaceString := "Christian"
-		modifiedMessage := strings.Replace(originalMessage, searchString, replaceString, -1)
+		// Unmarshal the JSON into a map
+		var messageMap map[string]interface{}
+		err := json.Unmarshal([]byte(originalMessage), &messageMap)
+		failOnError(err, "Failed to unmarshal JSON")
+
+		// Modify the "hello" key
+		messageMap["hello"] = "Christian"
+
+		// Modify the "b" in the "qux" array
+		if qux, ok := messageMap["qux"].([]interface{}); ok {
+			for i, v := range qux {
+				if v == "b" {
+					qux[i] = "Christian"
+				}
+			}
+		}
+
+		// Marshal the map back into JSON
+		modifiedMessage, err := json.Marshal(messageMap)
+		failOnError(err, "Failed to marshal JSON")
 
 		// Re-queue the modified message to the same or a different queue
 		err = ch.Publish(
@@ -69,8 +85,8 @@ func main() {
 			false,      // mandatory
 			false,      // immediate
 			amqp.Publishing{
-				ContentType: "text/plain",
-				Body:        []byte(modifiedMessage),
+				ContentType: "application/json",
+				Body:        modifiedMessage,
 			})
 		err = msg.Ack(false)
 		failOnError(err, "Failed to publish a message")
