@@ -23,3 +23,4 @@ You have to install [Erlang](https://www.erlang.org/downloads)
 Login to the RabbitMQ Management UI (http://localhost:15672/).<br>
 Go to `Queues and Streams`.<br>
 Click on `Add Queues`.<br>
+Name the queue und leave everything by the default settings.
