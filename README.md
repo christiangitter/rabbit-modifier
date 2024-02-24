@@ -18,3 +18,8 @@ This command starts a RabbitMQ server and exposes port 5672 for AMQP protocol an
 
 ### Install Erlang
 You have to install [Erlang](https://www.erlang.org/downloads)
+
+### Create a queue
+Login to the RabbitMQ Management UI (http://localhost:15672/).<br>
+Go to `Queues and Streams`.<br>
+Click on `Add Queues`.<br>
