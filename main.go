@@ -2,6 +2,7 @@ package main
 
 import (
 	"log"
+	"strings"
 
 	"github.com/streadway/amqp"
 )
@@ -24,19 +25,57 @@ func main() {
 	failOnError(err, "Failed to open a channel")
 	defer ch.Close()
 
+	// Inspect the queue to get the current message count
+	queue_name := "test_queue"
+	queue, err := ch.QueueInspect(queue_name)
+	failOnError(err, "Failed to inspect the queue")
+
+	messageCount := queue.Messages
+	log.Printf("Queue %s has %d messages.\n", queue_name, messageCount)
+
 	// register a consumer
 	msgs, err := ch.Consume(
-		"queue_name", // queue
-		"",           // consumer
-		true,         // auto-ack
-		false,        // exclusive
-		false,        // no-local
-		false,        // no-wait
-		nil,          // args
+		queue_name, // queue
+		"",         // consumer
+		false,      // auto-ack
+		false,      // exclusive
+		false,      // no-local
+		false,      // no-wait
+		nil,        // args
 	)
 	failOnError(err, "Failed to register a consumer")
 
+	receivedCount := 0
+
 	for msg := range msgs {
+		if receivedCount >= messageCount {
+			log.Println("Processed the expected number of messages, stopping.")
+			break
+		}
 		log.Printf("Received a message: %s", msg.Body)
+
+		// Convert message body to string for processing
+		originalMessage := string(msg.Body)
+
+		// Search for a string and replace it
+		searchString := "World"
+		replaceString := "Christian"
+		modifiedMessage := strings.Replace(originalMessage, searchString, replaceString, -1)
+
+		// Re-queue the modified message to the same or a different queue
+		err = ch.Publish(
+			"",         // exchange
+			queue_name, // routing key (queue)
+			false,      // mandatory
+			false,      // immediate
+			amqp.Publishing{
+				ContentType: "text/plain",
+				Body:        []byte(modifiedMessage),
+			})
+		err = msg.Ack(false)
+		failOnError(err, "Failed to publish a message")
+		log.Printf(" [x] Sent %s", modifiedMessage)
+
+		receivedCount++
 	}
 }
