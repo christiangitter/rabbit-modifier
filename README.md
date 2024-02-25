@@ -24,3 +24,15 @@ Login to the RabbitMQ Management UI (http://localhost:15672/).<br>
 Go to `Queues and Streams`.<br>
 Click on `Add Queues`.<br>
 Name the queue und leave everything by the default settings.
+
+### Publish a json message
+Login to the RabbitMQ Management UI (http://localhost:15672/).<br>
+Go to `Queues and Streams`.<br>
+Select the queue you just created.<br>
+Click on `Publish Message` so fire a message in the queue.<br>
+
+## Config the RabbitMQ Modifier
+Open the `.env` file to update the RabbitMQ connection URL.
+
+Now you are ready to modify this message via RabbitMQ Modifier.
+
