@@ -8,6 +8,7 @@ import (
 	"os"
 	"strings"
 
+	"github.com/joho/godotenv"
 	"github.com/streadway/amqp"
 )
 
@@ -26,6 +27,21 @@ func isValidJSON(str string) bool {
 
 func main() {
 
+	err := godotenv.Load()
+	if err != nil {
+		fmt.Println("Error loading .env file")
+		return
+	}
+
+	rabbitMQURL := os.Getenv("RABBITMQ_URL")
+	if rabbitMQURL == "" {
+		fmt.Println("RABBITMQ_URL is not set")
+		return
+	}
+
+	// Use rabbitMQURL
+	fmt.Println(rabbitMQURL)
+
 	reader := bufio.NewReader(os.Stdin)
 
 	fmt.Print("Enter the key to be modified: ")
@@ -41,7 +57,7 @@ func main() {
 	value = strings.Replace(value, "\r", "", -1)
 
 	// Connect to RabbitMQ server
-	conn, err := amqp.Dial("amqp://guest:guest@localhost:5672/")
+	conn, err := amqp.Dial(rabbitMQURL)
 	failOnError(err, "Failed to connect to RabbitMQ")
 	defer conn.Close()
 
