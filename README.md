@@ -36,3 +36,7 @@ Open the `.env` file to update the RabbitMQ connection URL.
 
 Now you are ready to modify this message via RabbitMQ Modifier.
 
+## Usage
+Pull this Repo and navigate inside the project folder with the terminal. Perform a `go mod download` to download the dependencies.<br>
+With `go run main.go` you can execute the service.
+
