@@ -45,6 +45,7 @@ func main() {
 	reader := bufio.NewReader(os.Stdin)
 
 	fmt.Print("Enter the key to be modified: ")
+	//The _ is used to ignore the error returned
 	key, _ := reader.ReadString('\n')
 
 	fmt.Print("Enter the new value: ")
@@ -57,6 +58,7 @@ func main() {
 	value = strings.Replace(value, "\r", "", -1)
 
 	// Connect to RabbitMQ server
+	// This is a short variable declaration in Go. Conn set up the connection and the err hold any error that occurred during the Consume call.
 	conn, err := amqp.Dial(rabbitMQURL)
 	failOnError(err, "Failed to connect to RabbitMQ")
 	defer conn.Close()
