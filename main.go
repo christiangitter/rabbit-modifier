@@ -1,9 +1,12 @@
 package main
 
 import (
+	"bufio"
 	"encoding/json"
 	"fmt"
 	"log"
+	"os"
+	"strings"
 
 	"github.com/streadway/amqp"
 )
@@ -22,6 +25,21 @@ func isValidJSON(str string) bool {
 }
 
 func main() {
+
+	reader := bufio.NewReader(os.Stdin)
+
+	fmt.Print("Enter the key to be modified: ")
+	key, _ := reader.ReadString('\n')
+
+	fmt.Print("Enter the new value: ")
+	value, _ := reader.ReadString('\n')
+
+	// Remove newline characters
+	key = strings.Replace(key, "\n", "", -1)
+	key = strings.Replace(key, "\r", "", -1)
+	value = strings.Replace(value, "\n", "", -1)
+	value = strings.Replace(value, "\r", "", -1)
+
 	// Connect to RabbitMQ server
 	conn, err := amqp.Dial("amqp://guest:guest@localhost:5672/")
 	failOnError(err, "Failed to connect to RabbitMQ")
@@ -68,7 +86,7 @@ func main() {
 
 		// Navigate to the "fullyQualifiedClassName" key
 		if payLoad, ok := messageMap["payLoad"].(map[string]interface{}); ok {
-			payLoad["fullyQualifiedClassName"] = "de.test.test.TS.endpoint.TESTEndpoint.TEST.TestInformation"
+			payLoad[key] = value
 		}
 
 		// Marshal the map back into JSON
@@ -92,7 +110,6 @@ func main() {
 		err = msg.Ack(false)
 		failOnError(err, "Failed to publish a message")
 		log.Printf(" [x] Sent %s", modifiedMessage)
-
 		receivedCount++
 	}
 }
