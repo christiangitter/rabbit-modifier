@@ -2,6 +2,7 @@ package main
 
 import (
 	"encoding/json"
+	"fmt"
 	"log"
 
 	"github.com/streadway/amqp"
@@ -12,6 +13,12 @@ func failOnError(err error, msg string) {
 	if err != nil {
 		log.Fatalf("%s: %s", msg, err)
 	}
+}
+
+// simple JSON validation helper function
+func isValidJSON(str string) bool {
+	var js json.RawMessage
+	return json.Unmarshal([]byte(str), &js) == nil
 }
 
 func main() {
@@ -54,29 +61,23 @@ func main() {
 		}
 		log.Printf("Received a message: %s", msg.Body)
 
-		// Convert message body to string for processing
-		originalMessage := string(msg.Body)
-
 		// Unmarshal the JSON into a map
 		var messageMap map[string]interface{}
-		err := json.Unmarshal([]byte(originalMessage), &messageMap)
+		err := json.Unmarshal(msg.Body, &messageMap)
 		failOnError(err, "Failed to unmarshal JSON")
 
-		// Modify the "hello" key
-		messageMap["hello"] = "Christian"
-
-		// Modify the "b" in the "qux" array
-		if qux, ok := messageMap["qux"].([]interface{}); ok {
-			for i, v := range qux {
-				if v == "b" {
-					qux[i] = "Christian"
-				}
-			}
+		// Navigate to the "fullyQualifiedClassName" key
+		if payLoad, ok := messageMap["payLoad"].(map[string]interface{}); ok {
+			payLoad["fullyQualifiedClassName"] = "de.test.test.TS.endpoint.TESTEndpoint.TEST.TestInformation"
 		}
 
 		// Marshal the map back into JSON
 		modifiedMessage, err := json.Marshal(messageMap)
 		failOnError(err, "Failed to marshal JSON")
+
+		// json validation
+		isValid := isValidJSON(string(modifiedMessage))
+		fmt.Println("The provided JSON is valid:", isValid)
 
 		// Re-queue the modified message to the same or a different queue
 		err = ch.Publish(
