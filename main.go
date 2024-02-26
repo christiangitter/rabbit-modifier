@@ -39,6 +39,12 @@ func main() {
 		return
 	}
 
+	rabbitMQQueue := os.Getenv("RABBITMQ_QUEUE")
+	if rabbitMQQueue == "" {
+		fmt.Println("RABBITMQ_QUEUE is not set")
+		return
+	}
+
 	// Use rabbitMQURL
 	fmt.Println(rabbitMQURL)
 
@@ -69,7 +75,7 @@ func main() {
 	defer ch.Close()
 
 	// Inspect the queue to get the current message count
-	queue_name := "test_queue"
+	queue_name := rabbitMQQueue
 	queue, err := ch.QueueInspect(queue_name)
 	failOnError(err, "Failed to inspect the queue")
 
